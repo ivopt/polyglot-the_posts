@@ -12,6 +12,7 @@ For my blog I'd like to have:
 
 It would also be nice to have a **backoffice** kind of tool that would allow me to:
 * **manage** the blog entries.
+* While managing blog entries, I'd like to be able to have non-published blog entries (those I'd be working on)
 * **manage** tags.
 * **manage** my bio.
 * **manage** the homepage.
@@ -37,4 +38,24 @@ Don't be afraid of writing code that you may end up throwing away, that its part
 ### So, time to code?.. not just yet.
 
 Don't be eager to jump into code. I know writing code is a lot of fun but that fun can be easily spoiled if you jump straight into it without thinking on what you'll be building.
+From an outside perspective, I'd say this blog needs:
 
+* A page to list blog entries, ordered by date (from most recent to oldest)
+* A page to show a particular blog entry
+* A page to show my bio
+
+From this I kind of extract 2 entities: **The blog entry** and **the bio page**.
+
+Blog entries are things with a **title** and a **body** that can be a huge piece of text, contain links do images, fragments of code, etc..
+My bio page is a huge piece of text and contains at least one picture of my ugly self... kinda like a blog entry!
+
+Now I'm having a mixed feeling: If these 2 things are so similar, should they be represented by the same entity? I honestly don't think so. I may be wrong, if so somewhere in the future I may need to review this.
+My bio kinda seems like "seeded data" - something that should exist from day 1 - and it will be accessed in a very unique way.
+Also (and this is premature) I easily can imagine having other "fixed" pages like my bio (like a small portfolio kind of thing).. So I'd say there is a **Page** entity here.
+
+So, lets summarize a bit:
+
+* 3 endpoints: `/entries`, `/entries/:id` and `/bio`
+* 2 entities: **Blog Entry** and **Page** 
+
+Things are kind of thought out, time to act!
