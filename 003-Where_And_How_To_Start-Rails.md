@@ -10,18 +10,7 @@ Because my objective is to compare multiple frameworks and languages, I'll keep 
 I'm going for a BDD/TDD approach on this one, but I'm not resorting to Cucumber, which would be the default for BDD.
 Cucumber tests have the tendency to run slow. Plus, I normally only resort to Cucumber when I need to test some JS behavior. For this project I won't need to test JS so..
 
-As for method, I'm going top-to-bottom which means that I'll follow the flow:
-
-1. Write an acceptance test
-2. See it fail
-3. Write a integration test
-4. See them fail as well
-5. Write unit tests
-6. See them fail, make them green, refactor
-7. See the integration tests go green, refactor
-8. See the acceptance test go green, refactor
-9. Feature done, start over with another feature.
-
+First and foremost let me tell you what layers of tests I usually consider and what they mean to me:
 
 **Acceptance tests** will cover all the happy paths form a end user perspective. They are the ones that by reading them, any developer will have an immediate and quite solid idea of what the app is supposed to do. These tests run on top of a fully running app (with server, services, databases, etc...)
 
@@ -33,6 +22,23 @@ As for method, I'm going top-to-bottom which means that I'll follow the flow:
 
 
 Maybe I'm abusing on the naming conventions for these tests. Most people would call "Acceptance tests" to cucumber tests but and I've said, cucumber tends to be slow and I actually don't see Gherkin as real communications tool between developers and analysts. I feel Acceptance Tests should be used for communication between developers, and this is why I'm ok doing them on something a bit more "code like".
+
+
+As for method, I'm going top-to-bottom which means that I'll somewhat follow the flow:
+
+1. Write a high level test (usually an acceptance test)
+2. See it fail and discover I am lacking a controller, an action or some unimplemented behavior.
+3. Write a few functional tests
+4. See them fail as well
+5. Write unit tests
+6. See them fail, make them green, refactor
+7. See the integration tests go green, refactor
+8. See the acceptance test go green, refactor
+9. Feature done, start over with another feature.
+
+
+The drill doesn't always need to go this way. Most times, the highest level tests should only describe the happy paths (those that describe normal usage of the app) and leave the "not so happy paths" (those that end up in some sort of error) to lower layers where multiple permutations are cheaper (usually unit tests are super fast while acceptance tests are slower).
+For example, assume that on the BlogPosts index page I would have a few options to allow the users to choose how many posts per page should be shown (say 10, 15 or 20). I would have a high level acceptance test to drive the development of the Blog Posts index itself, but as for the paging and the number of items shown, that would be something that I would relegate to a functional test done on the controller.
 
 
 ### Setup
