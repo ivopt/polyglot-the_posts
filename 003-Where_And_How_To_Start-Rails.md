@@ -41,47 +41,22 @@ The drill doesn't always need to go this way. Most times, the highest level test
 For example, assume that on the BlogPosts index page I would have a few options to allow the users to choose how many posts per page should be shown (say 10, 15 or 20). I would have a high level acceptance test to drive the development of the Blog Posts index itself, but as for the paging and the number of items shown, that would be something that I would relegate to a functional test done on the controller.
 
 
-### Setup
+#### To TDD or not to TDD
 
-I'm using Ruby 2.3.0 on Rails 4.2.6.
+Don't feel too guilty for not following a strict TDD approach, for years I've felt that guilt and the only place it led me was to hate TDD. Full TDD is a thing that grows on you, don't expect to have a "eureka" moment and if you push yourself too hard you'll end up trying your best not to do TDD.
 
-As for extra dependencies:
+When I started out, _black box_ tests seemed quite an easy and useful thing, so I would develop something and then cover it with _black box_ tests that would make every single possible interaction with the public API of the object I had just created. I call these "black box" tests and not unit tests because I would not mock out the dependencies.
+Soon I realized I had problems. I ended up with methods on my objects API that were not used at all (except from the tests), all tests depended on having a complete environment running (the DB had to be up, some external REST API had to be up, etc...), tests were slow, etc...
 
-* factory\_girl
-* minitest-rails
-* minitest-rails-capybara
-* pry-rails
+Then I learned that to do real **Unit Tests** I would need to mock out all dependencies (and with that I learned to do Dependency Injection). This made tests more comfortable and quicker to run - no longer would I need to have everything wired up - but still I would some times end up with APIs larger than they should... And only then I learned the value of TDD. By writing the tests first, an objects API would grow naturally.
 
-I'll stick with the default sqlite database for now, no need for anything else right now.
+For quite some time I only did **Unit Tests**. Why? Because I didn't quite know how other tests should be done. Was this a bad thing? No, it gave me time to let TDD settle in.
+When I was comfortable enough with Unit Tests, I ventured into other kinds of tests. Tests that would check if my controllers would behave as expected - checking status codes, checking if they would delegate work to the proper core objects, checking if they would setup the view environment correctly. These where **Functional Tests**, they don't differ that much from **Unit tests** but they tend to cover a few objects rather than only 1 (as Unit Tests usually do).
 
-### Let's get started
-
-So, first thing is creating the app:
-
-```
-$ rails new the_polyglot
-```
-
-Then add in the gem dependencies:
-
-```
-group :development, :test do
-  gem 'pry-byebug'
-  gem 'factory_girl'
-  gem 'minitest-rails'
-  # ...
-end
-
-group :development do
-  gem 'pry-rails'
-  gem 'thin'
-  # ...
-end
-
-group :test do
-  gem 'minitest-rails-capybara'
-  # ...
-end
-```
+Still there was something missing... I had most things covered but still there would be times where clients would complain that something on my HTML was off, or some property on my REST JSON API responses was missing... I was not testing my apps from a client perspective! Thats when **Acceptance tests** and **Integration tests** came in.
 
 
+So, to sum this up, don't feel too guilty for not doing TDD/BDD the right way.. The fact is: Most people don't do it "the right way" - I certainly don't. You should do what yields the best results for you and give things time to sink in.
+
+
+So.. Lets get to work??
