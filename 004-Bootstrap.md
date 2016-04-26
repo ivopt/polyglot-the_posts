@@ -15,9 +15,8 @@ I'm using Ruby 2.3.0 on Rails 4.2.6.
 
 As for extra dependencies:
 
-* factory\_girl
-* minitest-rails
-* minitest-rails-capybara
+* minitest-rails (because test unit is ugly)
+* minitest-rails-capybara (to help me with acceptance/integration tests)
 * pry-rails
 
 I'll stick with the default sqlite database, no need for anything else right now.
@@ -30,12 +29,11 @@ So, first thing is creating the app:
 $ rails new the_polyglot
 ```
 
-Then add in the gem dependencies:
+Then add in the gem dependencies (in the `Gemfile`):
 
 ```
 group :development, :test do
   gem 'pry-byebug'
-  gem 'factory_girl'
   gem 'minitest-rails'
   # ...
 end
@@ -51,5 +49,13 @@ group :test do
   # ...
 end
 ```
+
+Now run bundler: `$ bundle`
+
+Because I chose to use `minitest`, I need to run the install generator: `$ rails generate minitest:install`
+
+And run the server: `$ rails s`
+
+Yay! My app is up and running - It does nothing but at least it doesn't crash! :D
 
 
