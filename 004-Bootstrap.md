@@ -233,5 +233,57 @@ To do so, just add a simple 'is valid with title' test:
 
 So.. are we done? The Entry model sure seems so (for now), but if we run the integration test it still fails, why? Nothing gets rendered. Lets get to that.
 What we need is some way of getting stuff from the database into the view. On a typical Rails app this coordination is done on the controller - we need to fetch entries and pass them on to
-the views, lets dive that.
+the views, lets drive that.
 
+So, on `tests/controllers/entries_controller_test.rb` I would expect that when I `GET /entries`, it assigns something to `@entries` (that will be automagically passed onto the view layer) 
+and respond `:success` HTTP status:
+
+```ruby
+describe EntriesController, :controller do
+  describe '#index' do
+    it 'assigns the @index variable for the views to pick up' do
+      get :index
+
+      assert_response :success
+      assert_not_nil assigns(:entries)
+    end
+  end
+end
+```
+
+To make this pass, it is only needed to assign something to `@entries`. Yes, that wont be final production code, but some other tests will drive that.
+From the point of view of the controller, it only needs to respond successfully and assign something to `@entries`, like:
+
+```ruby
+class EntriesController < ApplicationController
+
+  def index
+    @entries = []
+  end
+
+end
+```
+
+And now the controller tests pass. But if we go back to `tests/integration/entries_test.rb`, the last test we wrote there still isn't green.
+What needs to be done now is to actually fetch the entries from the Database and to render them out somehow.
+As for fetching stuff from the Database, something as simple as getting all entries on the DB will suffice:
+
+```ruby
+  @entries = Entry.all
+```
+
+As for the view code to display this, because I haven't yet decided on any kind of design, I'm just gonna render out a list of titles, its enough to make tests pass!
+
+```haml
+%h1 Entries
+
+%ul
+  - @entries.each do |entry|
+    %li
+      .title= entry.title
+      .published= entry.published_on
+```
+
+Now, running the tests we have all green! And what does that mean? It means we can stop because we've reached our goal!
+Of course, when we reach green we should consider if it is time to refactor something while keeping all tests green.
+Because the code is so simple, I'm gonna skip that step since there is nothing to refactor. This will not be the case most of the times.
