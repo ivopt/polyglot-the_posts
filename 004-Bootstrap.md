@@ -71,108 +71,50 @@ Looking at what we have for this iteration, I'm going to pickup the `GET /entrie
 0. read endpoints are a good starting point because they usually need very basic stuff in place.
 0. From an acceptance test point of view, by the time we are implementing the write endpoints (PUT, POST, ...), we can use the read endpoints to assert that the writes were successful.
 
-To start this we will need to create an acceptance test for the `GET /entries` call. For now this will be a simple test and we will elaborate later.
-Create a file named `tests/acceptance/entries_test.rb` - this will be the base for our entries acceptance tests - and within create a simple test like:
+On this iteration we actually don't have any kind of write endpoints, but my point still stands. Whenever you're choosing what user story pick up next, always favor the READS, specially if you have that gut feeling that they will help you testing the WRITES later on.
+
+To start this we will need to create an acceptance test for the `GET /entries` call. Acceptance tests should be based on some user story and for this particular example the story should read something like:
+
+```gherkin
+Given a set of entries
+When I visit the entries page
+Then I see a list of existing entries
+```
+
+(yes, this is written in Gherkin syntax, but is just a happy coincidence)
+
+So, how do I write this test?
+Create a file named `tests/acceptance/entries_test.rb` - this will be the base for our entries acceptance tests - and within create a simple test like (notice the comments):
 
 ```ruby
 require 'test_helper'
 
 describe "Entries", :capybara do
   describe '/entries' do
-    it 'responds HTTP 200 OK' do
+    it 'lists existing entries' do
+      # Given a set of entries
+      entry1 = create(:entry, title: 'entry one')
+      entry2 = create(:entry, title: 'entry two')
+      entry3 = create(:entry, title: 'entry three')
+
+      # When I visit the /entries page
       visit '/entries'
-      page.status_code.must_equal 200
+
+      # Then I see the existing entries
+      page.must_have_text('entry one')
+      page.must_have_text('entry two')
+      page.must_have_text('entry three')
     end
   end
 end
 ```
 
 Then run it: `$ rake test test/acceptance/entries_test.rb`
-
-This will yield something like:
-
-```
-  1) Error:
-Entries::capybara::/entries#test_0001_responds HTTP 200 OK:
-ActionController::RoutingError: No route matches [GET] "/entries"
-    test/acceptance/entries_test.rb:6:in `block (3 levels) in <top (required)>'
-```
-
-What does this mean? Well, we are missing a route! Lets add it in (bear with me...):
-
-```ruby
-Rails.application.routes.draw do
-  resources :entries
-end
-```
-
-Now if we run out tests again what do we get?
-
-```
-Entries::capybara::/entries#test_0001_responds HTTP 200 OK:
-ActionController::RoutingError: uninitialized constant EntriesController
-    test/acceptance/entries_test.rb:6:in `block (3 levels) in <top (required)>'
-```
-
-Well, now we have the route but there is no matching controller... Lets generate it: `$ rails g controller Entries`
-This will generate lots of stuff (including some test files) but more interestingly this will generate an empty Entries controller.
-
-Now, running tests still fails, but we get a totally different error:
-
-```
-Entries::capybara::/entries#test_0001_responds HTTP 200 OK:
-AbstractController::ActionNotFound: The action 'index' could not be found for EntriesController
-    test/acceptance/entries_test.rb:6:in `block (3 levels) in <top (required)>'
-```
-
-This basically says that we have the route and the controller in place, but we are still lacking the corresponding view..
-Because we are not asserting anything on the content of that particular view, we could just do something like:
-
-```
-$ touch app/views/entries/index.html.haml
-```
-
-This will create an empty view file, which will be enough.
-Now, running the tests again we see all passes! YAY! We've seen it Red, we've made it Green. Now we only need to refactor while keeping green.
-
-The only refactor I can think of, right now, is that we've exceeded a bit with the routes, maybe something a bit more like `resources :entries, only: :index` would suffice.
-Running the tests still yields green, so, BAM! The first version of our app is DONE!
-Lets recap what we've done:
-
-- Created an acceptance test for the "User visits blog" story
-- Created an entry on routes to support the running user story
-- Created a controller that will be handed the call
-- Stubbed the template response (empty for now)
-
-That was a nice set of achievements!
-
-### What now?
-
-We have an extremely basic functionality on our `GET /entries` call, what else do we need? Well, we need it to actually list existing entries..
-For that I would like to write the following test:
-
-```ruby
-  it 'lists existing entries' do
-    # Given a set of entries
-    entry1 = create(:entry, title: 'entry one')
-    entry2 = create(:entry, title: 'entry two')
-    entry3 = create(:entry, title: 'entry three')
-
-    # When I visit the /entries page
-    visit '/entries'
-
-    # Then I see the existing entries
-    page.must_have_text('entry one')
-    page.must_have_text('entry two')
-    page.must_have_text('entry three')
-  end
-```
-
-But if we run this test we will get something like:
+and we will get something like:
 
 ```
 1) Error:
-  Entries::capybara::/entries#test_0002_lists existing entries:
+  Entries::capybara::/entries#test_0001_lists existing entries:
   ArgumentError: Factory not registered: entry
 ```
 
@@ -209,9 +151,8 @@ Run this, it will fail. Now we need to add a validation on the model (app/model/
 ```
 
 Are we done with this? Not really. We test that our model is invalid without title, but do we test if is valid with title?
-The fact is, if you know a bit of rails you know how presence validation works and you know that the `validates` I wrote will mark each instance valid as long as it has any title, but
-what if in some later time, someone was to come and change that `validates` statement into something else? Shouldn't the any of the tests blow up if that other implementation did not met
-the exact same contract as the `validates` statement?
+The fact is, if you know a bit of rails you know how presence validation works and you know that the `validates` I wrote will mark each instance valid as long as it has any title, but what if in some later time, someone was to come and change that `validates` statement into something else? 
+Shouldn't the any of the tests blow up if that other implementation did not met the exact same contract as the `validates` statement?
 I can easily supply another implementation that would make the current tests pass and that would not behave the same, all it would take is to remove the `validates` statement and add this in:
 
 ```ruby
@@ -231,24 +172,70 @@ To do so, just add a simple 'is valid with title' test:
   end
 ```
 
-So.. are we done? The Entry model sure seems so (for now), but if we run the integration test it still fails, why? Nothing gets rendered. Lets get to that.
-What we need is some way of getting stuff from the database into the view. On a typical Rails app this coordination is done on the controller - we need to fetch entries and pass them on to
-the views, lets drive that.
+So, the model is tested (for now) and the generated Factory is sufficient (for now), lets go back to our acceptance test. Running it will respond something like:
 
-So, on `tests/controllers/entries_controller_test.rb` I would expect that when I `GET /entries`, it assigns something to `@entries` (that will be automagically passed onto the view layer) 
-and respond `:success` HTTP status:
+```
+ActionController::RoutingError: No route matches [GET] "/entries"
+```
+
+What does this mean? Well, we are missing a route! Lets add it in (bear with me...):
 
 ```ruby
+Rails.application.routes.draw do
+  resources :entries
+end
+```
+
+Now if we run out tests again what do we get?
+
+```
+ActionController::RoutingError: uninitialized constant EntriesController
+```
+
+Well, now we have the route but there is no matching controller... Lets generate it: `$ rails g controller Entries`
+This will generate lots of stuff (including some test files) but more interestingly this will generate an empty Entries controller.
+
+To drive the development of the controller, we have an already generated file: `test/controllers/entries_controller_tests.rb`.
+So, when running through the `index` action, in a normal scenario, we should have a successful HTTP response, so:
+
+```ruby
+require 'test_helper'
+
 describe EntriesController, :controller do
   describe '#index' do
-    it 'assigns the @index variable for the views to pick up' do
+    it 'responds HTTP 200 OK' do
       get :index
-
       assert_response :success
-      assert_not_nil assigns(:entries)
     end
   end
 end
+```
+
+Now, running tests still fails, but we get a totally different error:
+
+```
+AbstractController::ActionNotFound: The action 'index' could not be found for EntriesController
+```
+
+This error is kind of cryptic.. Its not that the index action doesn't exist, its actually the view that doesn't (because rails auto-implements the actions with empty methods.
+Because we are not asserting anything on the content of that particular view, we could just do something like:
+
+```
+$ touch app/views/entries/index.html.haml
+```
+
+This will create an empty view file, which will be enough, and running the test again we see it passes! YAY!
+
+Going back to the acceptance test, we see it still fails. Why? The rendered content is empty when it should have something...
+What we need is some way of getting stuff from the database into the view. On a typical Rails app this coordination is done on the controller - we need to fetch entries and pass them on to the views, lets drive that.
+
+So, on `tests/controllers/entries_controller_test.rb` I would expect that when I `get :index`, it assigns something to `@entries` (that will be automagically passed onto the view layer):
+
+```ruby
+    it 'assigns the @index variable for the views to pick up' do
+      get :index
+      assert_not_nil assigns(:entries)
+    end
 ```
 
 To make this pass, it is only needed to assign something to `@entries`. Yes, that wont be final production code, but some other tests will drive that.
@@ -264,7 +251,7 @@ class EntriesController < ApplicationController
 end
 ```
 
-And now the controller tests pass. But if we go back to `tests/integration/entries_test.rb`, the last test we wrote there still isn't green.
+And now the controller tests pass. But if we go back to `tests/acceptance/entries_test.rb`.
 What needs to be done now is to actually fetch the entries from the Database and to render them out somehow.
 As for fetching stuff from the Database, something as simple as getting all entries on the DB will suffice:
 
@@ -287,3 +274,7 @@ As for the view code to display this, because I haven't yet decided on any kind 
 Now, running the tests we have all green! And what does that mean? It means we can stop because we've reached our goal!
 Of course, when we reach green we should consider if it is time to refactor something while keeping all tests green.
 Because the code is so simple, I'm gonna skip that step since there is nothing to refactor. This will not be the case most of the times.
+
+### Moving back and forth
+
+Have you notice how we kept going back and forth on the test layers? That is supposed to happen. Each layer represents a Red-Green-Refactor cycle and every time we fall into an inner layer, we follow its cycle until we reach our goal (green test results) and go back to see if, as a consequence of that inner layer being "green", the upper layer is also green. If it is not, it may mean that we need to implement something else and that implementation might very well be driven by another lower layer of tests.
