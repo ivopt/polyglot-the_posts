@@ -16,17 +16,18 @@ First and foremost let me tell you what layers of tests I usually consider and w
 
 **Integration tests** dig a little deeper than the acceptance tests by doing a few more interactions and dealing with error and edge cases. On these tests I'm usually not so worried with the readability of the tests themselves but rather on covering what has not been covered with the acceptance tests. Most times I feel comfortable running these with with everything underneath the controller layer mocked out, but it depends from case to case. This way these tests are super fast.
 
-**Functional tests** Explore most permutations that can be invoked on a public API (and by API I don't mean what the "cool kids" think an API is - a set of JSON endpoints - I'm talking API of an object, of a layer, etc..) with the least knowledge possible for the implementation (preferably not knowing anything at all but then mocking the layers bellow gets kind of hard sometimes).
+**Functional tests** Explore most permutations that can be invoked on a public API (and by API I don't mean what the "cool kids" think an API is - a set of JSON endpoints - I'm talking API of an object, of a layer, etc..) with the least knowledge possible for the implementation (preferably not knowing anything at all but then mocking the layers bellow gets kind of hard sometimes). These tests exist to ensure that the functionality you're implementing has all its bases covered (the stuff it responds, how it behaves when something unexpected happens, how it handles error cases, etc..)
 
-**Unit tests** Test every single thing under the sun on an object. It tries its best to walk all possible code branches for the implementation it is testing.
+**Unit tests** Test every single thing under the sun on an object. A Unit Test tries its best to walk all possible code branches for the implementation it is testing.
 
 
 Maybe I'm abusing on the naming conventions for these tests. Most people would call "Acceptance tests" to cucumber tests but and I've said, cucumber tends to be slow and I actually don't see Gherkin as real communications tool between developers and analysts. I feel Acceptance Tests should be used for communication between developers, and this is why I'm ok doing them on something a bit more "code like".
+The names you give your test layers can be subject to a lot of debate, purists will claim you're naming things wrong, haters will hate, just ignore them as I do.
 
 
 As for method, I'm going top-to-bottom which means that I'll somewhat follow the flow:
 
-1. Write a high level test (usually an acceptance test)
+1. Write a high level test (usually an acceptance test if I'm picking up a new feature, may be a integration test if I'm working on an existing feature, depends..)
 2. See it fail and discover I am lacking a controller, an action or some unimplemented behavior.
 3. Write a few functional tests
 4. See them fail as well
@@ -38,7 +39,7 @@ As for method, I'm going top-to-bottom which means that I'll somewhat follow the
 
 
 The drill doesn't always need to go this way. Most times, the highest level tests should only describe the happy paths (those that describe normal usage of the app) and leave the "not so happy paths" (those that end up in some sort of error) to lower layers where multiple permutations are cheaper (usually unit tests are super fast while acceptance tests are slower).
-For example, assume that on the BlogPosts index page I would have a few options to allow the users to choose how many posts per page should be shown (say 10, 15 or 20). I would have a high level acceptance test to drive the development of the Blog Posts index itself, but as for the paging and the number of items shown, that would be something that I would relegate to a functional test done on the controller.
+For example, assume that on the Blog Entries index page I would have a few options to allow the users to choose how many posts per page should be shown (say 10, 15 or 20). I would have a high level acceptance test to drive the development of the Blog Posts index itself, but as for the paging and the number of items shown, that would be something that I would relegate to a functional test done on the controller.
 
 
 #### To TDD or not to TDD
