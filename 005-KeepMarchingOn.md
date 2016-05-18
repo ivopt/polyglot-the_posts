@@ -5,7 +5,7 @@ So what is the first thing to do? Write a failing acceptance test that would res
 
 ```gherkin
 Given an existing blog entry
-When I see the entry detail page
+When I visit the entry detail page
 Then I can see the entry's title, body and publish date.
 ```
 
@@ -38,7 +38,7 @@ By running this we discover we have a missing route, lets add it in by white lis
   resources :entries, only: [:index, :show]
 ```
 
-Again, this will lead us to the point of having yet another error, the unexistence of the show view.
+Again, this will lead us to the point of having yet another error, the nonexistence of the show view (since the controller already exists).
 So, we would expect that when getting sow page for an existing entry, the controller should respond with a HTTP 200 and assign something to the @entry (that will be used by the view later on). Something like this:
 
 ```ruby
